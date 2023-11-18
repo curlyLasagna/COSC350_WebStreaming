@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "web-streaming"
+version = "0.1.0"
+description = ""
+authors = ["Luis, Abdalla"]
+readme = "README.md"
+packages = [{include = "web_streaming"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
