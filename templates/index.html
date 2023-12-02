@@ -1,9 +1,42 @@
-<html>
-  <head>
-    <title>Pi Video Surveillance</title>
-  </head>
-  <body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Motion Detection Alert</title>
+    <script>
+        // Function to check for motion status and display alert
+        function checkMotionStatus() {
+            // Make an AJAX request to get the motion status from the server
+            fetch('/motion_status')
+                .then(response => response.json())
+                .then(data => {
+                    // Check if motion is true, then display an alert
+                    if (data.isMotion) {
+                        alert(`Motion Detected at ${data.timestamp}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Periodically check for motion status every 3 seconds (adjust as needed)
+        setInterval(checkMotionStatus, 3000);
+    </script>
+</head>
+<body>
+    <!-- Your HTML content here -->
     <h1>Pi Video Surveillance</h1>
     <img src="{{ url_for('video_feed') }}">
-  </body>
+    <script>
+        // Optionally, you can update the HTML content based on motion status
+        function updateUI(isMotion, timestamp) {
+            // Update the UI elements based on motion status
+            // For example, update a timestamp or display motion status
+            // Replace the following lines with your HTML elements
+            document.getElementById('timestamp').innerText = timestamp;
+            document.getElementById('motionStatus').innerText = isMotion ? 'Motion Detected' : 'No Motion';
+        }
+    </script>
+</body>
 </html>

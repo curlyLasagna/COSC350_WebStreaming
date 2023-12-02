@@ -7,6 +7,7 @@ from imutils.video import VideoStream
 from flask import Response
 from flask import Flask
 from flask import render_template
+from flask import jsonify
 import threading
 import argparse
 import datetime
@@ -16,7 +17,7 @@ import cv2
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
-# are viewing tthe stream)
+# are viewing the stream)
 outputFrame = None
 lock = threading.Lock()
 
@@ -27,17 +28,30 @@ app = Flask(__name__)
 # warmup
 #vs = VideoStream(usePiCamera=1).start()
 vs = VideoStream(src=0).start()
-time.sleep(2.0)
+timeStan = ""
+isMotion = False
+
+# Add a new route to get motion status
+@app.route("/motion_status")
+def motion_status():
+    global timeStan, isMotion
+    # Return the current motion status as JSON
+    data = {
+		"isMotion": isMotion,
+		"timestamp": timeStan
+	}
+    
+    return data
 
 @app.route("/")
 def index():
 	# return the rendered template
-	return render_template("index.html")
+	return render_template("index.html", timestamp=timeStan, isMot=isMotion)
 
 def detect_motion(frameCount):
 	# grab global references to the video stream, output frame, and
 	# lock variables
-	global vs, outputFrame, lock
+	global vs, outputFrame, lock, timeStan, isMotion
 
 	# initialize the motion detector and the total number of frames
 	# read thus far
@@ -66,23 +80,30 @@ def detect_motion(frameCount):
 			# detect motion in the image
 			motion = md.detect(gray)
 
-			# cehck to see if motion was found in the frame
+			# check to see if motion was found in the frame
 			if motion is not None:
 				# unpack the tuple and draw the box surrounding the
 				# "motion area" on the output frame
 				(thresh, (minX, minY, maxX, maxY)) = motion
 				cv2.rectangle(frame, (minX, minY), (maxX, maxY),
 					(0, 0, 255), 2)
+				isMotion = True
+				timeStan = timestamp
 		
+			else:
+				isMotion = False
 		# update the background model and increment the total number
 		# of frames read thus far
 		md.update(gray)
 		total += 1
-
+  
 		# acquire the lock, set the output frame, and release the
 		# lock
 		with lock:
 			outputFrame = frame.copy()
+   
+		
+	
 		
 def generate():
 	# grab global references to the output frame and lock variables
@@ -136,6 +157,8 @@ if __name__ == '__main__':
 	# start the flask app
 	app.run(host=args["ip"], port=args["port"], debug=True,
 		threaded=True, use_reloader=False)
+ 
+
 
 # release the video stream pointer
 vs.stop()
